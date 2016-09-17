@@ -1,48 +1,74 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworkName": {
+      "type": "string",
+        "metadata": {
+        "description": "The name of the Virtual Network to Create"
+      },
+      "defaultValue": "VNET1"
     },
-    "variables": {
-        "VM01Prefix": "10.0.0.0/16",
-        "VM01Subnet1Name": "Subnet-1",
-        "VM01Subnet1Prefix": "10.0.0.0/24",
-        "VM01Subnet2Name": "Subnet-2",
-        "VM01Subnet2Prefix": "10.0.1.0/24"
+    "virtualNetworkAddressRange": {
+      "type": "string",
+        "metadata": {
+        "description": "The address range of the new VNET in CIDR format"
+      },
+      "defaultValue": "10.0.0.0/16"
     },
-    "resources": [
-        {
-            "name": "VM01",
-            "type": "Microsoft.Network/virtualNetworks",
-            "location": "[resourceGroup().location]",
-            "apiVersion": "2015-06-15",
-            "dependsOn": [ ],
-            "tags": {
-                "displayName": "VM01"
-            },
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[variables('VM01Prefix')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[variables('VM01Subnet1Name')]",
-                        "properties": {
-                            "addressPrefix": "[variables('VM01Subnet1Prefix')]"
-                        }
-                    },
-                    {
-                        "name": "[variables('VM01Subnet2Name')]",
-                        "properties": {
-                            "addressPrefix": "[variables('VM01Subnet2Prefix')]"
-                        }
-                    }
-                ]
-            }
-        }
-    ],
-    "outputs": {
+    "subnetName": {
+      "type": "string",
+        "metadata": {
+        "description": "The name of the subnet created in the new VNET"
+      },
+       "defaultValue": "Subnet1"
+    },
+    "subnetRange": {
+      "type": "string",
+      "metadata": {
+        "description": "The address range of the subnet created in the new VNET"
+      },
+      "defaultValue": "10.0.0.0/24"
     }
+  },
+  "resources": [
+    { 
+     "apiVersion": "2015-01-01", 
+     "name": "linkedTemplate", 
+     "type": "Microsoft.Resources/deployments", 
+     "properties": { 
+       "mode": "incremental", 
+       "templateLink": {
+          "uri":"https://github.com/mail2raji/Template/blob/master/VM1.json",
+          "contentVersion":"1.0.0.0"
+       }, 
+       "parametersLink": { 
+          "uri":"https://github.com/mail2raji/Template/blob/master/VM1.parameters.json",
+          "contentVersion":"1.0.0.0"
+       } 
+     } 
+  } 
+    {
+      "name": "[parameters('virtualNetworkName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('virtualNetworkAddressRange')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[parameters('subnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('subnetRange')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+
 }
